@@ -1,0 +1,27 @@
+<section class="page-heading" aria-labelledby="page-title">
+  <p class="eyebrow">Một nơi cho những cuốn sách</p>
+  <h1 id="page-title">Quản lý sách</h1>
+  <p class="page-description">Theo dõi danh mục sách, tác giả và giá bán trong một giao diện đơn giản.</p>
+</section>
+
+<section class="card welcome-card" aria-labelledby="connection-title">
+  <div class="welcome-illustration" aria-hidden="true">
+    <svg width="108" height="108" viewBox="0 0 108 108" fill="none">
+      <rect x="12" y="12" width="84" height="84" rx="42" fill="currentColor" opacity=".08"/>
+      <path d="M32 32h36a8 8 0 0 1 8 8v40H39a7 7 0 0 1-7-7V32Z" fill="white" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M39 68h37M42 32v36M51 44h15M51 51h11M32 73a5 5 0 0 1 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M61 75h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+    </svg>
+  </div>
+  <div class="welcome-content">
+    <span class="status-badge"><span class="status-dot" aria-hidden="true"></span>Đang thiết lập</span>
+    <h2 id="connection-title">Đang chuẩn bị kết nối cơ sở dữ liệu</h2>
+    <p>Danh mục và chức năng thêm sách sẽ sẵn sàng sau khi hoàn tất kết nối MongoDB Atlas.</p>
+  </div>
+</section>
+
+<aside class="info-strip" aria-label="Thông tin danh mục">
+  <div><span class="info-label">Danh mục của</span><strong>{{student.fullName}}</strong></div>
+  <div><span class="info-label">Mã sách bắt đầu bằng</span><strong>{{student.productPrefix}}</strong></div>
+  <div><span class="info-label">VAT áp dụng</span><strong>{{student.vatPercent}}%</strong></div>
+</aside>

@@ -1,0 +1,24 @@
+{
+  "name": "cloud-book-management-23it150",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Quản lý sách trên MongoDB Atlas — Hoàng Xuân Luân, 23IT150",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "express-handlebars": "^9.0.1",
+    "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}
