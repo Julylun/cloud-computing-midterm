@@ -10,12 +10,15 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test",
-    "check:database": "node scripts/check-database.js"
+    "test": "node --test test/*.test.js",
+    "check:database": "node scripts/check-database.js",
+    "check:session": "node scripts/check-session.js",
+    "check:http-session": "node scripts/check-http-session.js"
   },
   "dependencies": {
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "express-handlebars": "^9.0.1",
     "helmet": "^8.1.0",
     "mongodb": "^7.7.0"

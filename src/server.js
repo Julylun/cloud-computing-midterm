@@ -1,15 +1,17 @@
 import 'dotenv/config';
 import { createApp } from './app.js';
 import { createDatabase, readDatabaseConfig } from './db/database.js';
+import { readSessionConfig } from './config/session.js';
 
 async function start() {
   const port = Number(process.env.PORT || 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT phải là số nguyên từ 1 đến 65535.');
   }
+  const sessionConfig = readSessionConfig();
   const database = createDatabase(readDatabaseConfig());
   await database.connect();
-  const server = createApp({ database }).listen(port, '0.0.0.0', () => {
+  const server = createApp({ database, sessionSecret: sessionConfig.secret }).listen(port, '0.0.0.0', () => {
     console.log('Ứng dụng đang chạy tại http://localhost:' + port);
   });
   server.once('error', async () => {
@@ -29,6 +31,6 @@ async function start() {
   }
 }
 start().catch(() => {
-  console.error('Không thể khởi động: kiểm tra PORT, hai URI trong .env, tài khoản và Network Access Atlas.');
+  console.error('Không thể khởi động: kiểm tra PORT, hai URI, SESSION_SECRET và Network Access Atlas.');
   process.exitCode = 1;
 });

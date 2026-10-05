@@ -2,11 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import { createSessionDatabase, SESSION_SECRET } from './helpers/session-db.mjs';
 
 function setup({ list = async () => [], insert = async () => {}, health = async () => {} } = {}) {
   const inserted = [];
-  const database = { books: { list, insert: async (book) => { inserted.push(book); await insert(book); } }, health };
-  return { app: createApp({ database }), inserted };
+  const { database } = createSessionDatabase();
+  database.books.list = list;
+  database.books.insert = async (book) => { inserted.push(book); await insert(book); };
+  database.health = health;
+  return { app: createApp({ database, sessionSecret: SESSION_SECRET }), inserted };
 }
 const validBook = { code: '150-001', title: 'Điện toán đám mây', author: 'Tác giả', basePrice: '100000' };
 

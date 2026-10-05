@@ -8,6 +8,10 @@
   <div class="notice" role="status">{{notice}}</div>
 {{/if}}
 
+{{#if lastAddedBookCode}}
+  <div class="session-note" role="status">Sách vừa thêm: <strong>{{lastAddedBookCode}}</strong></div>
+{{/if}}
+
 <div class="content-grid">
   <section class="card book-list" aria-labelledby="book-list-title">
     <div class="card-heading">
