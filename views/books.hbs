@@ -1,0 +1,97 @@
+<section class="page-heading" aria-labelledby="page-title">
+  <p class="eyebrow">Một nơi cho những cuốn sách</p>
+  <h1 id="page-title">Danh mục sách</h1>
+  <p class="page-description">Xem thông tin và thêm sách vào thư viện của {{student.fullName}}.</p>
+</section>
+
+{{#if notice}}
+  <div class="notice" role="status">{{notice}}</div>
+{{/if}}
+
+<div class="content-grid">
+  <section class="card book-list" aria-labelledby="book-list-title">
+    <div class="card-heading">
+      <h2 id="book-list-title">Sách trong thư viện</h2>
+      <span class="book-count">{{books.length}} cuốn</span>
+    </div>
+    {{#if books.length}}
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Danh sách sách, có thể cuộn ngang">
+        <table class="books-table">
+          <caption class="visually-hidden">Danh mục sách và giá bán bằng đồng Việt Nam</caption>
+          <thead>
+            <tr>
+              <th scope="col">Mã sách</th>
+              <th scope="col">Sách &amp; tác giả</th>
+              <th scope="col" class="price">Giá trước thuế</th>
+              <th scope="col" class="price">Giá sau thuế</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each books}}
+              <tr>
+                <td><span class="book-code">{{code}}</span></td>
+                <td class="book-information">
+                  <span class="book-title">{{title}}</span>
+                  <span class="book-author">{{author}}</span>
+                </td>
+                <td class="price">{{formatMoney basePrice}}</td>
+                <td class="price">
+                  <strong class="total-price">{{formatMoney totalPrice}}</strong>
+                  <span class="price-note">Đã gồm VAT {{vatPercent}}%</span>
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{else}}
+      <div class="empty-state">
+        <span class="empty-icon" aria-hidden="true">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+            <path d="M12 6.5C9.3 4.5 6.2 4 3 4.7v14c3.2-.7 6.3-.2 9 1.8m0-14c2.7-2 5.8-2.5 9-1.8v14c-3.2-.7-6.3-.2-9 1.8m0-14v14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <h3>Thư viện chưa có sách</h3>
+        <p>Thêm cuốn sách đầu tiên bằng biểu mẫu bên cạnh.</p>
+      </div>
+    {{/if}}
+  </section>
+
+  <section class="card add-book" aria-labelledby="add-book-title" id="add-book">
+    <div class="card-heading">
+      <h2 id="add-book-title">Thêm sách mới</h2>
+    </div>
+    <div class="card-body">
+      <p class="form-introduction">Điền đầy đủ thông tin để lưu sách vào danh mục.</p>
+      <form action="/books" method="post">
+        <div class="field">
+          <label for="book-code">Mã sách</label>
+          <input id="book-code" name="code" type="text" value="{{values.code}}" required aria-describedby="code-hint{{#if errors.code}} code-error{{/if}}"{{#if errors.code}} aria-invalid="true"{{/if}}>
+          <p class="field-hint" id="code-hint">Bắt đầu bằng {{student.productPrefix}}.</p>
+          {{#if errors.code}}<p class="field-error" id="code-error">{{errors.code}}</p>{{/if}}
+        </div>
+        <div class="field">
+          <label for="book-title">Tên sách</label>
+          <input id="book-title" name="title" type="text" value="{{values.title}}" required{{#if errors.title}} aria-invalid="true" aria-describedby="title-error"{{/if}}>
+          {{#if errors.title}}<p class="field-error" id="title-error">{{errors.title}}</p>{{/if}}
+        </div>
+        <div class="field">
+          <label for="book-author">Tác giả</label>
+          <input id="book-author" name="author" type="text" value="{{values.author}}" required{{#if errors.author}} aria-invalid="true" aria-describedby="author-error"{{/if}}>
+          {{#if errors.author}}<p class="field-error" id="author-error">{{errors.author}}</p>{{/if}}
+        </div>
+        <div class="field">
+          <label for="book-price">Giá trước thuế (VND)</label>
+          <input id="book-price" name="basePrice" type="number" min="1" step="1" inputmode="numeric" value="{{values.basePrice}}" required aria-describedby="price-hint{{#if errors.basePrice}} price-error{{/if}}"{{#if errors.basePrice}} aria-invalid="true"{{/if}}>
+          <p class="field-hint" id="price-hint">Nhập số nguyên dương, không có dấu phân cách.</p>
+          {{#if errors.basePrice}}<p class="field-error" id="price-error">{{errors.basePrice}}</p>{{/if}}
+        </div>
+        <div class="vat-note">
+          <span>Thuế VAT</span><strong>{{student.vatPercent}}%</strong>
+          <p>Giá sau thuế được tính tự động khi lưu sách.</p>
+        </div>
+        <button class="button button-full" type="submit">Lưu sách</button>
+      </form>
+    </div>
+  </section>
+</div>

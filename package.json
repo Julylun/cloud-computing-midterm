@@ -10,13 +10,15 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "check:database": "node scripts/check-database.js"
   },
   "dependencies": {
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
     "express-handlebars": "^9.0.1",
-    "helmet": "^8.1.0"
+    "helmet": "^8.1.0",
+    "mongodb": "^7.7.0"
   },
   "devDependencies": {
     "supertest": "^7.1.4"
