@@ -1,6 +1,7 @@
 import { MongoClient, MongoNetworkError, MongoServerSelectionError } from 'mongodb';
 import { setServers } from 'node:dns';
 import { isIP } from 'node:net';
+import { connectionFailureCategory } from './connection-diagnostics.js';
 
 const DATABASE_NAME = 'DB_23IT150';
 const CLIENT_OPTIONS = Object.freeze({
@@ -56,12 +57,8 @@ function readDnsServers(value) {
 
 function isRetryableConnectionError(error) {
   if (!(error instanceof MongoNetworkError || error instanceof MongoServerSelectionError)) return false;
-  const causes = [error, error.cause, error.reason?.error];
-  if (error.reason?.servers instanceof Map) {
-    causes.push(...[...error.reason.servers.values()].map((server) => server.error));
-  }
   // A server-selection wrapper can contain an authentication/authorization failure.
-  return !causes.some((cause) => [13, 18, 8000].includes(cause?.code));
+  return !['AUTHENTICATION', 'AUTHORIZATION', 'ATLAS_REJECTED'].includes(connectionFailureCategory(error));
 }
 
 export function readDatabaseConfig(env = process.env) {
@@ -114,6 +111,7 @@ export function createDatabase(config, { Client = MongoClient, setDnsServers = s
     readDb,
     writeDb,
     async connect() {
+      let connectionFailures = [];
       for (let attempt = 0; attempt < 2; attempt += 1) {
         const connections = await Promise.allSettled([
           Promise.resolve().then(() => readClient.connect()),
@@ -121,10 +119,14 @@ export function createDatabase(config, { Client = MongoClient, setDnsServers = s
         ]);
         const failures = connections.filter((result) => result.status === 'rejected');
         if (failures.length === 0) return;
+        connectionFailures = connections.flatMap((result, index) => result.status === 'rejected' ? [{
+          role: index === 0 ? 'reader' : 'writer',
+          category: connectionFailureCategory(result.reason),
+        }] : []);
         await closeBoth();
         if (attempt === 1 || !failures.every((failure) => isRetryableConnectionError(failure.reason))) break;
       }
-      throw new Error('Không thể kết nối MongoDB Atlas bằng hai tài khoản độc lập.');
+      throw Object.assign(new Error('Không thể kết nối MongoDB Atlas bằng hai tài khoản độc lập.'), { connectionFailures });
     },
     async close() {
       const results = await closeBoth();

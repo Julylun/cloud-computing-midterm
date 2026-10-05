@@ -240,19 +240,28 @@ test('lỗi mạng tạm thời retry cả hai sau khi đợi đóng xong cả h
 
 test('lỗi xác thực hoặc quyền không retry kể cả khi client còn lại lỗi mạng', async () => {
   for (const code of [18, 13, 8000]) {
-    for (const wrapped of [false, true]) {
+    for (const wrapped of ['none', 'reason', 'serverCause']) {
       const fake = fakeClients();
       const authError = new MongoServerError({ message: 'private credentials rejected', code });
       class RejectedClient extends fake.Client {
         async connect() {
           fake.calls.push({ method: 'connect', role: this.role });
           if (this.role === 'write') throw new MongoNetworkError('network failure');
-          throw wrapped ? new MongoServerSelectionError('selection failed', { error: authError }) : authError;
+          if (wrapped === 'reason') throw new MongoServerSelectionError('selection failed', { error: authError });
+          if (wrapped === 'serverCause') throw new MongoServerSelectionError('selection failed', {
+            servers: new Map([['private-host', { error: new MongoNetworkError('private TLS message', { cause: authError }) }]]),
+          });
+          throw authError;
         }
       }
       const database = createDatabase(readDatabaseConfig(env), { Client: RejectedClient });
       await assert.rejects(database.connect(), (error) => {
         assert.doesNotMatch(error.message, /private|credentials|selection failed|network failure/);
+        assert.deepEqual(error.connectionFailures, [
+          { role: 'reader', category: code === 18 ? 'AUTHENTICATION' : code === 13 ? 'AUTHORIZATION' : 'ATLAS_REJECTED' },
+          { role: 'writer', category: 'NETWORK' },
+        ]);
+        assert.doesNotMatch(JSON.stringify(error), /private|credentials|selection failed|network failure/);
         return true;
       });
       assert.equal(fake.calls.filter((call) => call.method === 'connect').length, 2);

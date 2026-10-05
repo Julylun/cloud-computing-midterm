@@ -1,36 +1,50 @@
 import 'dotenv/config';
 import { createApp } from './app.js';
-import { createDatabase, readDatabaseConfig } from './db/database.js';
-import { readSessionConfig } from './config/session.js';
+import { createDatabase } from './db/database.js';
+import { formatStartupFailure, readStartupConfig } from './config/startup.js';
+
+let stage = 'CONFIG';
+let database;
 
 async function start() {
-  const port = Number(process.env.PORT || 3000);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error('PORT phải là số nguyên từ 1 đến 65535.');
-  }
-  const sessionConfig = readSessionConfig();
-  const database = createDatabase(readDatabaseConfig());
+  const { port, sessionConfig, databaseConfig } = readStartupConfig();
+  stage = 'DATABASE_INIT';
+  database = createDatabase(databaseConfig);
+  stage = 'ATLAS_CONNECT';
   await database.connect();
-  const server = createApp({ database, sessionSecret: sessionConfig.secret }).listen(port, '0.0.0.0', () => {
+  stage = 'APP_SETUP';
+  const app = createApp({ database, sessionSecret: sessionConfig.secret });
+  stage = 'HTTP_LISTEN';
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log('Ứng dụng đang chạy tại http://localhost:' + port);
   });
   server.once('error', async () => {
-    console.error('Không thể mở cổng HTTP. Kiểm tra PORT hoặc ứng dụng đang dùng cổng.');
-    await database.close();
+    console.error(formatStartupFailure('HTTP_LISTEN'));
+    try { await database.close(); }
+    catch { console.error('Không thể đóng toàn bộ kết nối MongoDB.'); }
     process.exitCode = 1;
   });
   for (const signal of ['SIGINT', 'SIGTERM']) {
     process.once(signal, () => {
       const deadline = setTimeout(() => process.exit(1), 5000).unref();
       server.close(async () => {
-        await database.close();
-        clearTimeout(deadline);
-        process.exit(0);
+        try {
+          await database.close();
+          clearTimeout(deadline);
+          process.exit(0);
+        } catch {
+          console.error('Không thể đóng toàn bộ kết nối MongoDB.');
+          process.exit(1);
+        }
       });
     });
   }
 }
-start().catch(() => {
-  console.error('Không thể khởi động: kiểm tra PORT, hai URI, SESSION_SECRET và Network Access Atlas.');
+start().catch(async (error) => {
+  console.error(formatStartupFailure(stage, error));
+  if (database) {
+    try { await database.close(); }
+    catch { console.error('Không thể đóng toàn bộ kết nối MongoDB.'); }
+  }
   process.exitCode = 1;
 });
