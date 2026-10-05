@@ -141,3 +141,5 @@ p { margin-top: 0; }
   html { scroll-behavior: auto; }
   .button { transition: none; }
 }
+.session-note { margin-bottom: 1.25rem; color: var(--muted); font-size: .875rem; }
+.session-note strong { color: var(--accent); overflow-wrap: anywhere; }
